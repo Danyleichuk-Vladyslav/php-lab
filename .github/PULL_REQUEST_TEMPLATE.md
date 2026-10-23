@@ -1,13 +1,17 @@
-## Опис
-
-<!-- Що змінено і навіщо. -->
-
-## Пов’язані задачі
+## Task link
 
 Fixes #
 Resolves #
 
-## Чеклист
+## What has been changed?
+
+<!-- Що змінено і навіщо. -->
+
+## Important notes
+
+Секрет `MY_SUPER_SECRET_KEY` не записувати у файли репозиторію. У журналі GitHub його значення маскується.
+
+## Self-checks
 
 - [ ] Pint проходить: `vendor/bin/pint --test`
 - [ ] PHPUnit зелений: `vendor/bin/phpunit tests`
