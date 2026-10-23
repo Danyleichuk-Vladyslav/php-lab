@@ -1,0 +1,40 @@
+name: PHP CI Application
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  ci:
+    name: PHP CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run Pint
+        run: vendor/bin/pint --test
+
+      - name: Run PHPUnit
+        run: vendor/bin/phpunit tests
+
+      - name: Demonstrate GitHub Secrets
+        env:
+          MY_SUPER_SECRET_KEY: ${{ secrets.MY_SUPER_SECRET_KEY }}
+        run: |
+          if [ -z "$MY_SUPER_SECRET_KEY" ]; then
+            echo "MY_SUPER_SECRET_KEY is not configured in GitHub Secrets."
+            exit 1
+          fi
+          echo "MY_SUPER_SECRET_KEY is loaded from GitHub Secrets."
+          echo "Logged value is masked: $MY_SUPER_SECRET_KEY"
