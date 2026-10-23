@@ -1,17 +1,15 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Services;
 
 class Calculator
 {
-    public function add(int $x, int $y): int
+    public function add($x, $y)
     {
         return $x + $y;
     }
 
-    public function subtract(int $x, int $y): int
+    public function subtract($x, $y)
     {
         return $x - $y;
     }
