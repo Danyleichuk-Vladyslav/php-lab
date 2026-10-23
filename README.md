@@ -2,6 +2,14 @@
 
 Навчальний проєкт `student/ci-cd-lab`: клас `Calculator`, тести PHPUnit і перевірка стилю Laravel Pint. Безперервна інтеграція описана в GitHub Actions.
 
+Можливості:
+
+- додавання двох цілих чисел;
+- віднімання двох цілих чисел;
+- перевірка оформлення коду Laravel Pint;
+- модульні тести PHPUnit;
+- перевірка секрету в GitHub Actions.
+
 PHP локально не обов’язковий. Пайплайн розрахований на PHP 8.2 у GitHub Actions.
 
 ![PHP CI](https://github.com/Danyleichuk-Vladyslav/php-lab/actions/workflows/php-ci.yml/badge.svg)
