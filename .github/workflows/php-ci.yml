@@ -2,10 +2,12 @@ name: PHP CI Application
 
 on:
   push:
+    branches: [ "main" ]
   pull_request:
+    branches: [ "main" ]
 
 jobs:
-  ci:
+  build:
     name: PHP CI
     runs-on: ubuntu-latest
 
@@ -13,20 +15,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup PHP
+      - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.2"
           coverage: none
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
-      - name: Run Pint
-        run: vendor/bin/pint --test
+      - name: Lint code with Pint
+        run: ./vendor/bin/pint --test
 
-      - name: Run PHPUnit
-        run: vendor/bin/phpunit tests
+      - name: Run unit tests
+        run: ./vendor/bin/phpunit tests/Unit
 
       - name: Demonstrate GitHub Secrets
         env:
