@@ -1,14 +1,9 @@
 {
     "name": "student/ci-cd-lab",
-    "description": "Лабораторна робота 1. CI для PHP: Calculator, PHPUnit і Pint.",
-    "type": "project",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2"
-    },
+    "description": "Minimal PHP project for CI/CD testing",
     "require-dev": {
-        "laravel/pint": "^1.13",
-        "phpunit/phpunit": "^10.5"
+        "phpunit/phpunit": "^10.5",
+        "laravel/pint": "^1.13"
     },
     "autoload": {
         "psr-4": {
@@ -19,13 +14,5 @@
         "psr-4": {
             "Tests\\": "tests/"
         }
-    },
-    "scripts": {
-        "test": "phpunit tests",
-        "pint": "pint",
-        "pint:test": "pint --test"
-    },
-    "config": {
-        "sort-packages": true
     }
 }
