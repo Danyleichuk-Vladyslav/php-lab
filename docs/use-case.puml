@@ -1,0 +1,51 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam usecase {
+  BackgroundColor white
+  BorderColor black
+}
+skinparam actor {
+  BackgroundColor white
+  BorderColor black
+}
+
+actor "Читач" as Reader
+actor "Автор" as Author
+actor "Адміністратор" as Admin
+
+Author --|> Reader
+Admin --|> Author
+
+usecase "Переглянути допис" as ViewPost
+usecase "Знайти допис" as FindPost
+usecase "Залишити коментар" as Comment
+usecase "Створити допис" as CreatePost
+usecase "Редагувати допис" as EditPost
+usecase "Опублікувати допис" as PublishPost
+usecase "Приховати коментар" as HideComment
+usecase "Заблокувати користувача" as BlockUser
+usecase "Переглянути статистику" as Stats
+usecase "Увійти до системи" as Login
+usecase "Зберегти чернетку" as Draft
+usecase "Знайти за категорією" as FindCategory
+usecase "Знайти за тегом" as FindTag
+
+Reader --> ViewPost
+Reader --> FindPost
+Reader --> Comment
+
+Author --> CreatePost
+Author --> EditPost
+Author --> PublishPost
+
+Admin --> HideComment
+Admin --> BlockUser
+Admin --> Stats
+
+PublishPost ..> Login : <<include>>
+Comment ..> Login : <<include>>
+Draft ..> CreatePost : <<extend>>
+FindCategory --|> FindPost
+FindTag --|> FindPost
+@enduml

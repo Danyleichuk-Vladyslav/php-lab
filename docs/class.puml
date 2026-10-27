@@ -1,0 +1,163 @@
+@startuml
+skinparam shadowing false
+skinparam class {
+  BackgroundColor white
+  BorderColor black
+}
+
+class User {
+  +id: int
+  +name: string
+  +email: string
+  +password: string
+  +registeredAt: date
+  +register(): bool
+  +login(): bool
+  +logout(): void
+  +updateProfile(): bool
+  +isBlocked(): bool
+}
+
+class Author {
+  +penName: string
+  +biography: string
+  +postsCount: int
+  +rating: float
+  +joinedAt: date
+  +createPost(): Post
+  +editPost(): bool
+  +publishPost(): bool
+  +saveDraft(): bool
+  +listOwnPosts(): Post[]
+}
+
+class Admin {
+  +staffCode: string
+  +moderatedCount: int
+  +lastActionAt: datetime
+  +canBlockUsers: bool
+  +department: string
+  +hideComment(): bool
+  +blockUser(): bool
+  +viewStatistics(): Report
+  +restorePost(): bool
+  +deleteCategory(): bool
+}
+
+class Post {
+  +id: int
+  +title: string
+  +body: string
+  +status: string
+  +publishedAt: datetime
+  +create(): bool
+  +update(): bool
+  +publish(): bool
+  +archive(): bool
+  +countViews(): int
+}
+
+class Comment {
+  +id: int
+  +body: string
+  +status: string
+  +createdAt: datetime
+  +authorName: string
+  +store(): bool
+  +update(): bool
+  +hide(): bool
+  +approve(): bool
+  +belongsToPost(): bool
+}
+
+class Category {
+  +id: int
+  +name: string
+  +slug: string
+  +description: string
+  +postsCount: int
+  +create(): bool
+  +rename(): bool
+  +archive(): bool
+  +listPosts(): Post[]
+  +countPosts(): int
+}
+
+class Tag {
+  +id: int
+  +name: string
+  +slug: string
+  +color: string
+  +usageCount: int
+  +create(): bool
+  +rename(): bool
+  +attachToPost(): bool
+  +detachFromPost(): bool
+  +popular(): Tag[]
+}
+
+class Attachment {
+  +id: int
+  +fileName: string
+  +mimeType: string
+  +sizeBytes: int
+  +path: string
+  +upload(): bool
+  +delete(): bool
+  +resize(): bool
+  +url(): string
+  +belongsToPost(): bool
+}
+
+class PostController {
+  +currentUserId: int
+  +page: int
+  +perPage: int
+  +statusCode: int
+  +message: string
+  +index(): Post[]
+  +show(): Post
+  +store(): bool
+  +update(): bool
+  +destroy(): bool
+}
+
+class CommentController {
+  +currentUserId: int
+  +postId: int
+  +page: int
+  +statusCode: int
+  +message: string
+  +index(): Comment[]
+  +store(): bool
+  +update(): bool
+  +hide(): bool
+  +destroy(): bool
+}
+
+class AuthController {
+  +email: string
+  +password: string
+  +remember: bool
+  +statusCode: int
+  +message: string
+  +showLogin(): void
+  +login(): bool
+  +logout(): void
+  +register(): bool
+  +resetPassword(): bool
+}
+
+Author --|> User : inherits
+Admin --|> Author : inherits
+
+User "1" o-- "0..*" Post : writes
+Post "1" *-- "0..*" Comment : contains
+Post "1" *-- "0..*" Attachment : includes
+Post "0..*" --> "0..*" Tag : tagged
+Category "1" --> "0..*" Post : groups
+User "1" --> "0..*" Comment : leaves
+PostController --> Post : manages
+CommentController --> Comment : manages
+AuthController --> User : authenticates
+@enduml
