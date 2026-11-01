@@ -2,16 +2,41 @@
 
 declare(strict_types=1);
 
-function countViews(int $views, int $added): int
-{
-    return $views + $added;
-}
+namespace App\Services;
 
-function applyDiscount(float $price, float $discount): float
+use App\Interfaces\LoggerInterface;
+use App\Models\AbstractEntity;
+
+class EntityService
 {
-    if ($discount < 0 || $discount > 100) {
-        throw new Exception('Неприпустиме значення знижки!');
+    public function __construct(private LoggerInterface $logger) {}
+
+    public function countViews(int $views, int $added): int
+    {
+        $result = $views + $added;
+        $this->logger->log('Перегляди: було '.$views.', додалося '.$added.', стало '.$result);
+
+        return $result;
     }
 
-    return $price - ($price * ($discount / 100));
+    public function applyDiscount(float $price, float $discount): float
+    {
+        if ($discount < 0 || $discount > 100) {
+            $this->logger->log('Знижку '.$discount.' відхилено');
+            throw new \Exception('Неприпустиме значення знижки!');
+        }
+
+        $result = $price - ($price * ($discount / 100));
+        $this->logger->log('Нова ціна після знижки: '.$result);
+
+        return $result;
+    }
+
+    public function publish(AbstractEntity $entity): string
+    {
+        $details = $entity->getDetails();
+        $this->logger->log('Сервіс обробив сутність: '.$details);
+
+        return $details;
+    }
 }
