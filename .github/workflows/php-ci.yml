@@ -17,15 +17,22 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.2"
+          extensions: mbstring, curl, openssl, zip, fileinfo, pdo_sqlite, sqlite3
+
+      - name: Copy .env file
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
 
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
+      - name: Generate Application Key
+        run: php artisan key:generate
+
       - name: Lint code with Pint
         run: ./vendor/bin/pint --test
 
-      - name: Run unit tests
-        run: ./vendor/bin/phpunit tests/Unit
+      - name: Run Application Tests
+        run: php artisan test
 
       - name: Demonstrate GitHub Secrets
         env:

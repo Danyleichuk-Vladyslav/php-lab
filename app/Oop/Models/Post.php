@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Oop\Models;
 
 use App\Interfaces\ExportableInterface;
 use App\Traits\JsonExportTrait;

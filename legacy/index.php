@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Core\Database;
 use App\Core\EntityFactory;
-use App\Models\Post;
+use App\Oop\Models\Post;
 use App\Services\ConsoleLogger;
 use App\Services\EntityService;
 use App\Services\FileLogger;

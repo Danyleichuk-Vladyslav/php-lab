@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Interfaces\LoggerInterface;
-use App\Models\AbstractEntity;
+use App\Oop\Models\AbstractEntity;
 
 class EntityService
 {
