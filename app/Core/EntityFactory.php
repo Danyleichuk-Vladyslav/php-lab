@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Core;
 
-use App\Models\AbstractEntity;
-use App\Models\Post;
-use App\Models\User;
+use App\Oop\Models\AbstractEntity;
+use App\Oop\Models\Post;
+use App\Oop\Models\User;
 
 class EntityFactory
 {
