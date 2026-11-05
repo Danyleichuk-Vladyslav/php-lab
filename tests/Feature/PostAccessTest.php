@@ -4,19 +4,25 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\Category;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PostAccessTest extends TestCase
 {
-    /**
-     * Тест блокування: запит без заголовка X-Author-Role повинен бути відхилений Middleware.
-     */
+    use RefreshDatabase;
+
     public function test_request_without_client_header_is_blocked_by_middleware(): void
     {
+        $user = User::factory()->create();
+        $category = Category::factory()->create();
+
         $response = $this->postJson('/posts', [
+            'user_id' => $user->id,
+            'category_id' => $category->id,
             'title' => 'Новий допис блогу',
             'body' => 'Текст нового допису для перевірки middleware.',
-            'category_id' => 1,
             'published_at' => '2026-11-03 12:00:00',
         ]);
 
@@ -26,18 +32,18 @@ class PostAccessTest extends TestCase
             ]);
     }
 
-    /**
-     * Тест успіху: запит із валідним заголовком проходить до контролера
-     * та збагачується службовим заголовком пост-обробки.
-     */
     public function test_request_with_valid_header_passes_middleware(): void
     {
+        $user = User::factory()->create();
+        $category = Category::factory()->create();
+
         $response = $this->withHeaders([
             'X-Author-Role' => 'editor',
         ])->postJson('/posts', [
+            'user_id' => $user->id,
+            'category_id' => $category->id,
             'title' => 'Новий допис блогу',
             'body' => 'Текст нового допису для перевірки middleware.',
-            'category_id' => 1,
             'published_at' => '2026-11-03 12:00:00',
         ]);
 
