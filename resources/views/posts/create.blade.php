@@ -15,12 +15,12 @@
             <form action="{{ route('posts.store') }}" method="POST">
                 @csrf
 
-                <x-form.input name="title" label="Заголовок" required />
-                <x-form.textarea name="body" label="Текст допису" rows="6" required />
+                <x-form.input name="title" label="Заголовок" />
+                <x-form.textarea name="body" label="Текст допису" rows="6" />
 
                 <div class="mb-3">
                     <label for="user_id" class="form-label">Автор</label>
-                    <select name="user_id" id="user_id" class="form-select @error('user_id') is-invalid @enderror" required>
+                    <select name="user_id" id="user_id" class="form-select @error('user_id') is-invalid @enderror">
                         <option value="">-- Оберіть автора --</option>
                         @foreach ($users as $user)
                             <option value="{{ $user->id }}" {{ (string) old('user_id') === (string) $user->id ? 'selected' : '' }}>
@@ -35,7 +35,7 @@
 
                 <div class="mb-3">
                     <label for="category_id" class="form-label">Категорія (звʼязок 1:M)</label>
-                    <select name="category_id" id="category_id" class="form-select @error('category_id') is-invalid @enderror" required>
+                    <select name="category_id" id="category_id" class="form-select @error('category_id') is-invalid @enderror">
                         <option value="">-- Оберіть категорію --</option>
                         @foreach ($categories as $category)
                             <option value="{{ $category->id }}" {{ (string) old('category_id') === (string) $category->id ? 'selected' : '' }}>
