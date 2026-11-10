@@ -4,33 +4,45 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Post;
-use Illuminate\Http\JsonResponse;
+use App\Models\Tag;
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class PostController extends Controller
 {
     /**
      * Список дописів із жадібним завантаженням категорії та тегів.
      */
-    public function index(Request $request): JsonResponse
+    public function index(): View
     {
-        $posts = Post::query()
-            ->with(['category:id,name,slug', 'tags:id,name,slug', 'user:id,name'])
-            ->where('status', 'published')
-            ->latest('published_at')
-            ->paginate(15);
+        $items = Post::query()
+            ->with(['category', 'tags', 'user'])
+            ->orderByDesc('id')
+            ->paginate(10);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $posts,
-        ], 200);
+        return view('posts.index', compact('items'));
     }
 
     /**
-     * Створення допису з прив'язкою до категорії (1:M) та тегів (M:M).
+     * Форма створення допису.
      */
-    public function store(Request $request): JsonResponse
+    public function create(): View
+    {
+        $categories = Category::orderBy('name')->get();
+        $tags = Tag::orderBy('name')->get();
+        $users = User::orderBy('name')->get();
+
+        return view('posts.create', compact('categories', 'tags', 'users'));
+    }
+
+    /**
+     * Збереження допису з прив'язкою до категорії (1:M) та тегів (M:M).
+     */
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'user_id' => ['required', 'integer', 'exists:users,id'],
@@ -53,65 +65,78 @@ class PostController extends Controller
             'views_count' => 0,
         ]);
 
-        if (! empty($validated['tags'])) {
-            $post->tags()->sync($validated['tags']);
-        }
+        $post->tags()->sync($validated['tags'] ?? []);
 
-        $post->load(['category:id,name,slug', 'tags:id,name,slug', 'user:id,name']);
-
-        return response()->json([
-            'status' => 'created',
-            'data' => $post,
-        ], 201);
+        return redirect()
+            ->route('posts.index')
+            ->with('success', 'Допис успішно створено!');
     }
 
     /**
-     * Один допис зі зв'язаними сутностями.
+     * Детальна сторінка допису зі зв'язаними сутностями.
      */
-    public function show(string $id): JsonResponse
+    public function show(Post $post): View
     {
-        $post = Post::with([
-            'category:id,name,slug',
-            'tags:id,name,slug',
-            'user:id,name',
-            'comments',
-            'attachments',
-        ])->findOrFail((int) $id);
+        $post->load(['category', 'tags', 'user', 'comments.user', 'attachments']);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $post,
-        ], 200);
+        return view('posts.show', ['item' => $post]);
+    }
+
+    /**
+     * Форма редагування допису.
+     */
+    public function edit(Post $post): View
+    {
+        $categories = Category::orderBy('name')->get();
+        $tags = Tag::orderBy('name')->get();
+        $users = User::orderBy('name')->get();
+        $post->load('tags');
+
+        return view('posts.edit', compact('post', 'categories', 'tags', 'users'));
     }
 
     /**
      * Оновлення допису та синхронізація тегів M:M.
      */
-    public function update(Request $request, string $id): JsonResponse
+    public function update(Request $request, Post $post): RedirectResponse
     {
-        $post = Post::findOrFail((int) $id);
-
         $validated = $request->validate([
-            'category_id' => ['sometimes', 'integer', 'exists:categories,id'],
-            'title' => ['sometimes', 'string', 'min:2', 'max:255'],
-            'body' => ['sometimes', 'string', 'min:2'],
-            'status' => ['sometimes', 'string', 'in:draft,published,archived'],
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
+            'title' => ['required', 'string', 'min:2', 'max:255'],
+            'body' => ['required', 'string', 'min:2'],
+            'status' => ['nullable', 'string', 'in:draft,published,archived'],
             'published_at' => ['nullable', 'date'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['integer', 'exists:tags,id'],
         ]);
 
-        $post->update(collect($validated)->except('tags')->all());
+        $post->update([
+            'user_id' => $validated['user_id'],
+            'category_id' => $validated['category_id'],
+            'title' => $validated['title'],
+            'body' => $validated['body'],
+            'status' => $validated['status'] ?? $post->status,
+            'published_at' => $validated['published_at'] ?? $post->published_at,
+        ]);
 
-        if (array_key_exists('tags', $validated)) {
-            $post->tags()->sync($validated['tags'] ?? []);
-        }
+        $post->tags()->sync($validated['tags'] ?? []);
 
-        $post->load(['category:id,name,slug', 'tags:id,name,slug', 'user:id,name']);
+        return redirect()
+            ->route('posts.index')
+            ->with('success', 'Допис успішно оновлено!');
+    }
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $post,
-        ], 200);
+    /**
+     * Видалення допису.
+     */
+    public function destroy(Post $post): RedirectResponse
+    {
+        $post->tags()->detach();
+        $post->delete();
+
+        return redirect()
+            ->route('posts.index')
+            ->with('success', 'Допис успішно видалено!');
     }
 }

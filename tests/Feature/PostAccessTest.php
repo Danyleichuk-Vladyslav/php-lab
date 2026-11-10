@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Category;
+use App\Models\Post;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -13,41 +14,45 @@ class PostAccessTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_request_without_client_header_is_blocked_by_middleware(): void
+    public function test_create_page_is_available(): void
     {
-        $user = User::factory()->create();
-        $category = Category::factory()->create();
+        Category::factory()->create();
+        User::factory()->create();
 
-        $response = $this->postJson('/posts', [
-            'user_id' => $user->id,
-            'category_id' => $category->id,
-            'title' => 'Новий допис блогу',
-            'body' => 'Текст нового допису для перевірки middleware.',
-            'published_at' => '2026-11-03 12:00:00',
-        ]);
-
-        $response->assertStatus(403)
-            ->assertJson([
-                'status' => 'access_denied',
-            ]);
+        $this->get('/posts/create')
+            ->assertStatus(200)
+            ->assertSee('Створення нового допису')
+            ->assertSee('Категорія');
     }
 
-    public function test_request_with_valid_header_passes_middleware(): void
+    public function test_update_and_delete_via_forms(): void
     {
         $user = User::factory()->create();
         $category = Category::factory()->create();
-
-        $response = $this->withHeaders([
-            'X-Author-Role' => 'editor',
-        ])->postJson('/posts', [
+        $post = Post::factory()->create([
             'user_id' => $user->id,
             'category_id' => $category->id,
-            'title' => 'Новий допис блогу',
-            'body' => 'Текст нового допису для перевірки middleware.',
-            'published_at' => '2026-11-03 12:00:00',
+            'title' => 'Старий заголовок',
         ]);
 
-        $response->assertStatus(201);
-        $response->assertHeader('X-Security-Policy', 'Enforced');
+        $this->put('/posts/'.$post->id, [
+            'user_id' => $user->id,
+            'category_id' => $category->id,
+            'title' => 'Оновлений заголовок',
+            'body' => 'Оновлений текст допису для форми редагування.',
+            'status' => 'published',
+        ])->assertRedirect(route('posts.index'));
+
+        $this->assertDatabaseHas('posts', [
+            'id' => $post->id,
+            'title' => 'Оновлений заголовок',
+        ]);
+
+        $this->delete('/posts/'.$post->id)
+            ->assertRedirect(route('posts.index'));
+
+        $this->assertDatabaseMissing('posts', [
+            'id' => $post->id,
+        ]);
     }
 }

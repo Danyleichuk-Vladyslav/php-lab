@@ -28,11 +28,12 @@ class PostDatabaseTest extends TestCase
         $tag = Tag::factory()->create(['name' => 'Гори']);
         $post->tags()->attach($tag->id);
 
-        $response = $this->getJson('/posts');
+        $response = $this->get('/posts');
 
         $response->assertStatus(200)
-            ->assertJsonFragment(['title' => 'Подорож Карпатами'])
-            ->assertJsonFragment(['name' => 'Подорожі']);
+            ->assertSee('Подорож Карпатами')
+            ->assertSee('Подорожі')
+            ->assertSee('Гори');
     }
 
     public function test_can_create_post_with_category_and_tags_in_database(): void
@@ -41,7 +42,7 @@ class PostDatabaseTest extends TestCase
         $category = Category::factory()->create();
         $tags = Tag::factory()->count(2)->create();
 
-        $payload = [
+        $response = $this->post('/posts', [
             'user_id' => $user->id,
             'category_id' => $category->id,
             'title' => 'Новий допис із тегами',
@@ -49,13 +50,9 @@ class PostDatabaseTest extends TestCase
             'status' => 'published',
             'published_at' => '2026-11-05 10:00:00',
             'tags' => $tags->pluck('id')->all(),
-        ];
+        ]);
 
-        $response = $this->withHeaders([
-            'X-Author-Role' => 'editor',
-        ])->postJson('/posts', $payload);
-
-        $response->assertStatus(201);
+        $response->assertRedirect(route('posts.index'));
 
         $this->assertDatabaseHas('posts', [
             'title' => 'Новий допис із тегами',
@@ -63,7 +60,7 @@ class PostDatabaseTest extends TestCase
             'user_id' => $user->id,
         ]);
 
-        $postId = $response->json('data.id');
+        $postId = Post::where('title', 'Новий допис із тегами')->value('id');
         foreach ($tags as $tag) {
             $this->assertDatabaseHas('post_tag', [
                 'post_id' => $postId,
