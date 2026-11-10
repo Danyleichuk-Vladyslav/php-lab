@@ -5,26 +5,30 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Category;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(): View
     {
-        $categories = Category::query()
+        $items = Category::query()
             ->withCount('posts')
             ->orderBy('name')
-            ->get();
+            ->paginate(10);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $categories,
-        ], 200);
+        return view('categories.index', compact('items'));
     }
 
-    public function store(Request $request): JsonResponse
+    public function create(): View
+    {
+        return view('categories.create');
+    }
+
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:255', 'unique:categories,name'],
@@ -32,27 +36,56 @@ class CategoryController extends Controller
             'description' => ['nullable', 'string'],
         ]);
 
-        $category = Category::create([
+        Category::create([
             'name' => $validated['name'],
             'slug' => $validated['slug'] ?? Str::slug($validated['name']),
             'description' => $validated['description'] ?? null,
         ]);
 
-        return response()->json([
-            'status' => 'created',
-            'data' => $category,
-        ], 201);
+        return redirect()
+            ->route('categories.index')
+            ->with('success', 'Категорію успішно створено!');
     }
 
-    public function show(string $id): JsonResponse
+    public function show(Category $category): View
     {
-        $category = Category::with(['posts' => function ($query): void {
-            $query->with(['tags:id,name'])->latest('published_at');
-        }])->findOrFail((int) $id);
+        $category->load(['posts' => function ($query): void {
+            $query->with(['tags', 'user'])->latest('published_at');
+        }]);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $category,
-        ], 200);
+        return view('categories.show', ['item' => $category]);
+    }
+
+    public function edit(Category $category): View
+    {
+        return view('categories.edit', compact('category'));
+    }
+
+    public function update(Request $request, Category $category): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'min:2', 'max:255', Rule::unique('categories', 'name')->ignore($category->id)],
+            'slug' => ['nullable', 'string', 'max:255', Rule::unique('categories', 'slug')->ignore($category->id)],
+            'description' => ['nullable', 'string'],
+        ]);
+
+        $category->update([
+            'name' => $validated['name'],
+            'slug' => $validated['slug'] ?? Str::slug($validated['name']),
+            'description' => $validated['description'] ?? null,
+        ]);
+
+        return redirect()
+            ->route('categories.index')
+            ->with('success', 'Категорію успішно оновлено!');
+    }
+
+    public function destroy(Category $category): RedirectResponse
+    {
+        $category->delete();
+
+        return redirect()
+            ->route('categories.index')
+            ->with('success', 'Категорію успішно видалено!');
     }
 }
