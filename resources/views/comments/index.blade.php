@@ -5,7 +5,9 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Коментарі</h1>
-        <a href="{{ route('comments.create') }}" class="btn btn-primary">Додати коментар</a>
+        @auth
+            <a href="{{ route('comments.create') }}" class="btn btn-primary">Додати коментар</a>
+        @endauth
     </div>
     <table class="table table-bordered table-striped">
         <thead class="table-dark">
@@ -28,12 +30,16 @@
                     <td>{{ $item->status }}</td>
                     <td>
                         <a href="{{ route('comments.show', $item) }}" class="btn btn-sm btn-info">Перегляд</a>
-                        <a href="{{ route('comments.edit', $item) }}" class="btn btn-sm btn-warning">Редаг.</a>
-                        <form action="{{ route('comments.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Дійсно видалити?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-danger">Видалити</button>
-                        </form>
+                        @can('update', $item)
+                            <a href="{{ route('comments.edit', $item) }}" class="btn btn-sm btn-warning">Редаг.</a>
+                        @endcan
+                        @can('delete', $item)
+                            <form action="{{ route('comments.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Дійсно видалити?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger">Видалити</button>
+                            </form>
+                        @endcan
                     </td>
                 </tr>
             @empty

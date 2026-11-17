@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Profile;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -25,30 +23,26 @@ class ProfileController extends Controller
 
     public function create(): View
     {
-        $users = User::query()
-            ->whereDoesntHave('profile')
-            ->orderBy('name')
-            ->get(['id', 'name', 'email']);
+        $this->authorize('create', Profile::class);
 
-        return view('profiles.create', compact('users'));
+        return view('profiles.create');
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $this->authorize('create', Profile::class);
+
         $validated = $request->validate([
-            'user_id' => ['required', 'integer', 'exists:users,id', 'unique:profiles,user_id'],
             'pen_name' => ['nullable', 'string', 'max:255'],
             'biography' => ['nullable', 'string'],
-            'posts_count' => ['nullable', 'integer', 'min:0'],
-            'rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
         ]);
 
         Profile::create([
-            'user_id' => $validated['user_id'],
+            'user_id' => $request->user()->id,
             'pen_name' => $validated['pen_name'] ?? null,
             'biography' => $validated['biography'] ?? null,
-            'posts_count' => $validated['posts_count'] ?? 0,
-            'rating' => $validated['rating'] ?? 0,
+            'posts_count' => 0,
+            'rating' => 0,
         ]);
 
         return redirect()
@@ -65,33 +59,23 @@ class ProfileController extends Controller
 
     public function edit(Profile $profile): View
     {
-        $users = User::query()
-            ->where(function ($query) use ($profile): void {
-                $query->whereDoesntHave('profile')
-                    ->orWhere('id', $profile->user_id);
-            })
-            ->orderBy('name')
-            ->get(['id', 'name', 'email']);
+        $this->authorize('update', $profile);
 
-        return view('profiles.edit', compact('profile', 'users'));
+        return view('profiles.edit', compact('profile'));
     }
 
     public function update(Request $request, Profile $profile): RedirectResponse
     {
+        $this->authorize('update', $profile);
+
         $validated = $request->validate([
-            'user_id' => ['required', 'integer', 'exists:users,id', Rule::unique('profiles', 'user_id')->ignore($profile->id)],
             'pen_name' => ['nullable', 'string', 'max:255'],
             'biography' => ['nullable', 'string'],
-            'posts_count' => ['nullable', 'integer', 'min:0'],
-            'rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
         ]);
 
         $profile->update([
-            'user_id' => $validated['user_id'],
             'pen_name' => $validated['pen_name'] ?? null,
             'biography' => $validated['biography'] ?? null,
-            'posts_count' => $validated['posts_count'] ?? 0,
-            'rating' => $validated['rating'] ?? 0,
         ]);
 
         return redirect()
@@ -101,6 +85,8 @@ class ProfileController extends Controller
 
     public function destroy(Profile $profile): RedirectResponse
     {
+        $this->authorize('delete', $profile);
+
         $profile->delete();
 
         return redirect()

@@ -5,7 +5,9 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Вкладення</h1>
-        <a href="{{ route('attachments.create') }}" class="btn btn-primary">Додати вкладення</a>
+        @auth
+            <a href="{{ route('attachments.create') }}" class="btn btn-primary">Додати вкладення</a>
+        @endauth
     </div>
     <table class="table table-bordered table-striped">
         <thead class="table-dark">
@@ -28,12 +30,16 @@
                     <td>{{ $item->size_bytes }}</td>
                     <td>
                         <a href="{{ route('attachments.show', $item) }}" class="btn btn-sm btn-info">Перегляд</a>
-                        <a href="{{ route('attachments.edit', $item) }}" class="btn btn-sm btn-warning">Редаг.</a>
-                        <form action="{{ route('attachments.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Дійсно видалити?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-danger">Видалити</button>
-                        </form>
+                        @can('update', $item)
+                            <a href="{{ route('attachments.edit', $item) }}" class="btn btn-sm btn-warning">Редаг.</a>
+                        @endcan
+                        @can('delete', $item)
+                            <form action="{{ route('attachments.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Дійсно видалити?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger">Видалити</button>
+                            </form>
+                        @endcan
                     </td>
                 </tr>
             @empty

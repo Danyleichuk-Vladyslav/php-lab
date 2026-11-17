@@ -25,11 +25,15 @@ class CategoryController extends Controller
 
     public function create(): View
     {
+        $this->authorize('create', Category::class);
+
         return view('categories.create');
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $this->authorize('create', Category::class);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:255', 'unique:categories,name'],
             'slug' => ['nullable', 'string', 'max:255', 'unique:categories,slug'],
@@ -58,11 +62,15 @@ class CategoryController extends Controller
 
     public function edit(Category $category): View
     {
+        $this->authorize('update', $category);
+
         return view('categories.edit', compact('category'));
     }
 
     public function update(Request $request, Category $category): RedirectResponse
     {
+        $this->authorize('update', $category);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:255', Rule::unique('categories', 'name')->ignore($category->id)],
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('categories', 'slug')->ignore($category->id)],
@@ -82,6 +90,8 @@ class CategoryController extends Controller
 
     public function destroy(Category $category): RedirectResponse
     {
+        $this->authorize('delete', $category);
+
         $category->delete();
 
         return redirect()

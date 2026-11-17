@@ -7,16 +7,12 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\Tag;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class PostController extends Controller
 {
-    /**
-     * Список дописів із жадібним завантаженням категорії та тегів.
-     */
     public function index(): View
     {
         $items = Post::query()
@@ -27,25 +23,21 @@ class PostController extends Controller
         return view('posts.index', compact('items'));
     }
 
-    /**
-     * Форма створення допису.
-     */
     public function create(): View
     {
+        $this->authorize('create', Post::class);
+
         $categories = Category::orderBy('name')->get();
         $tags = Tag::orderBy('name')->get();
-        $users = User::orderBy('name')->get();
 
-        return view('posts.create', compact('categories', 'tags', 'users'));
+        return view('posts.create', compact('categories', 'tags'));
     }
 
-    /**
-     * Збереження допису з прив'язкою до категорії (1:M) та тегів (M:M).
-     */
     public function store(Request $request): RedirectResponse
     {
+        $this->authorize('create', Post::class);
+
         $validated = $request->validate([
-            'user_id' => ['required', 'integer', 'exists:users,id'],
             'category_id' => ['required', 'integer', 'exists:categories,id'],
             'title' => ['required', 'string', 'min:2', 'max:255'],
             'body' => ['required', 'string', 'min:2'],
@@ -56,7 +48,7 @@ class PostController extends Controller
         ]);
 
         $post = Post::create([
-            'user_id' => $validated['user_id'],
+            'user_id' => $request->user()->id,
             'category_id' => $validated['category_id'],
             'title' => $validated['title'],
             'body' => $validated['body'],
@@ -72,9 +64,6 @@ class PostController extends Controller
             ->with('success', 'Допис успішно створено!');
     }
 
-    /**
-     * Детальна сторінка допису зі зв'язаними сутностями.
-     */
     public function show(Post $post): View
     {
         $post->load(['category', 'tags', 'user', 'comments.user', 'attachments']);
@@ -82,26 +71,22 @@ class PostController extends Controller
         return view('posts.show', ['item' => $post]);
     }
 
-    /**
-     * Форма редагування допису.
-     */
     public function edit(Post $post): View
     {
+        $this->authorize('update', $post);
+
         $categories = Category::orderBy('name')->get();
         $tags = Tag::orderBy('name')->get();
-        $users = User::orderBy('name')->get();
         $post->load('tags');
 
-        return view('posts.edit', compact('post', 'categories', 'tags', 'users'));
+        return view('posts.edit', compact('post', 'categories', 'tags'));
     }
 
-    /**
-     * Оновлення допису та синхронізація тегів M:M.
-     */
     public function update(Request $request, Post $post): RedirectResponse
     {
+        $this->authorize('update', $post);
+
         $validated = $request->validate([
-            'user_id' => ['required', 'integer', 'exists:users,id'],
             'category_id' => ['required', 'integer', 'exists:categories,id'],
             'title' => ['required', 'string', 'min:2', 'max:255'],
             'body' => ['required', 'string', 'min:2'],
@@ -112,7 +97,6 @@ class PostController extends Controller
         ]);
 
         $post->update([
-            'user_id' => $validated['user_id'],
             'category_id' => $validated['category_id'],
             'title' => $validated['title'],
             'body' => $validated['body'],
@@ -127,11 +111,10 @@ class PostController extends Controller
             ->with('success', 'Допис успішно оновлено!');
     }
 
-    /**
-     * Видалення допису.
-     */
     public function destroy(Post $post): RedirectResponse
     {
+        $this->authorize('delete', $post);
+
         $post->tags()->detach();
         $post->delete();
 

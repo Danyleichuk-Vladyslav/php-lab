@@ -9,12 +9,15 @@
             @if ($errors->any())
                 <div class="alert alert-danger">Виправте помилки у формі нижче.</div>
             @endif
+
+            <p class="text-muted">Автор (не змінюється): <strong>{{ $comment->user->name ?? $comment->author_name ?? '—' }}</strong></p>
+
             <form action="{{ route('comments.update', $comment) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="mb-3">
                     <label for="post_id" class="form-label">Допис (1:M)</label>
-                    <select name="post_id" id="post_id" class="form-select @error('post_id') is-invalid @enderror" required>
+                    <select name="post_id" id="post_id" class="form-select @error('post_id') is-invalid @enderror">
                         @foreach ($posts as $post)
                             <option value="{{ $post->id }}" {{ (string) old('post_id', $comment->post_id) === (string) $post->id ? 'selected' : '' }}>{{ $post->title }}</option>
                         @endforeach
@@ -23,17 +26,7 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
-                <div class="mb-3">
-                    <label for="user_id" class="form-label">Користувач</label>
-                    <select name="user_id" id="user_id" class="form-select">
-                        <option value="">-- Без акаунта --</option>
-                        @foreach ($users as $user)
-                            <option value="{{ $user->id }}" {{ (string) old('user_id', $comment->user_id) === (string) $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <x-form.input name="author_name" label="Імʼя автора" :value="$comment->author_name" />
-                <x-form.textarea name="body" label="Текст коментаря" :value="$comment->body" rows="4" required />
+                <x-form.textarea name="body" label="Текст коментаря" :value="$comment->body" rows="4" />
                 <div class="mb-3">
                     <label for="status" class="form-label">Статус</label>
                     <select name="status" id="status" class="form-select">
