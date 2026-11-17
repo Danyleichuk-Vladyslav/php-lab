@@ -6,7 +6,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use App\Models\Post;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -30,26 +29,27 @@ class CommentController extends Controller
 
     public function create(): View
     {
-        $posts = Post::orderByDesc('id')->get(['id', 'title']);
-        $users = User::orderBy('name')->get(['id', 'name']);
+        $this->authorize('create', Comment::class);
 
-        return view('comments.create', compact('posts', 'users'));
+        $posts = Post::orderByDesc('id')->get(['id', 'title']);
+
+        return view('comments.create', compact('posts'));
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $this->authorize('create', Comment::class);
+
         $validated = $request->validate([
             'post_id' => ['required', 'integer', 'exists:posts,id'],
-            'user_id' => ['nullable', 'integer', 'exists:users,id'],
-            'author_name' => ['nullable', 'string', 'max:255'],
             'body' => ['required', 'string', 'min:2'],
             'status' => ['nullable', 'string', 'in:visible,hidden'],
         ]);
 
         Comment::create([
             'post_id' => $validated['post_id'],
-            'user_id' => $validated['user_id'] ?? null,
-            'author_name' => $validated['author_name'] ?? null,
+            'user_id' => $request->user()->id,
+            'author_name' => $request->user()->name,
             'body' => $validated['body'],
             'status' => $validated['status'] ?? 'visible',
         ]);
@@ -68,26 +68,25 @@ class CommentController extends Controller
 
     public function edit(Comment $comment): View
     {
-        $posts = Post::orderByDesc('id')->get(['id', 'title']);
-        $users = User::orderBy('name')->get(['id', 'name']);
+        $this->authorize('update', $comment);
 
-        return view('comments.edit', compact('comment', 'posts', 'users'));
+        $posts = Post::orderByDesc('id')->get(['id', 'title']);
+
+        return view('comments.edit', compact('comment', 'posts'));
     }
 
     public function update(Request $request, Comment $comment): RedirectResponse
     {
+        $this->authorize('update', $comment);
+
         $validated = $request->validate([
             'post_id' => ['required', 'integer', 'exists:posts,id'],
-            'user_id' => ['nullable', 'integer', 'exists:users,id'],
-            'author_name' => ['nullable', 'string', 'max:255'],
             'body' => ['required', 'string', 'min:2'],
             'status' => ['nullable', 'string', 'in:visible,hidden'],
         ]);
 
         $comment->update([
             'post_id' => $validated['post_id'],
-            'user_id' => $validated['user_id'] ?? null,
-            'author_name' => $validated['author_name'] ?? null,
             'body' => $validated['body'],
             'status' => $validated['status'] ?? $comment->status,
         ]);
@@ -99,6 +98,8 @@ class CommentController extends Controller
 
     public function destroy(Comment $comment): RedirectResponse
     {
+        $this->authorize('delete', $comment);
+
         $comment->delete();
 
         return redirect()

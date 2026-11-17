@@ -25,11 +25,15 @@ class TagController extends Controller
 
     public function create(): View
     {
+        $this->authorize('create', Tag::class);
+
         return view('tags.create');
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $this->authorize('create', Tag::class);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:255', 'unique:tags,name'],
             'slug' => ['nullable', 'string', 'max:255', 'unique:tags,slug'],
@@ -58,11 +62,15 @@ class TagController extends Controller
 
     public function edit(Tag $tag): View
     {
+        $this->authorize('update', $tag);
+
         return view('tags.edit', compact('tag'));
     }
 
     public function update(Request $request, Tag $tag): RedirectResponse
     {
+        $this->authorize('update', $tag);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:255', Rule::unique('tags', 'name')->ignore($tag->id)],
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('tags', 'slug')->ignore($tag->id)],
@@ -82,6 +90,8 @@ class TagController extends Controller
 
     public function destroy(Tag $tag): RedirectResponse
     {
+        $this->authorize('delete', $tag);
+
         $tag->posts()->detach();
         $tag->delete();
 

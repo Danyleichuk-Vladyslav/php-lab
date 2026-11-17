@@ -12,31 +12,18 @@
                 <div class="alert alert-danger">Виправте помилки у формі нижче.</div>
             @endif
 
+            <p class="text-muted">Автор (не змінюється): <strong>{{ $post->user->name ?? '—' }}</strong></p>
+
             <form action="{{ route('posts.update', $post) }}" method="POST">
                 @csrf
                 @method('PUT')
 
-                <x-form.input name="title" label="Заголовок" :value="$post->title" required />
-                <x-form.textarea name="body" label="Текст допису" :value="$post->body" rows="6" required />
-
-                <div class="mb-3">
-                    <label for="user_id" class="form-label">Автор</label>
-                    <select name="user_id" id="user_id" class="form-select @error('user_id') is-invalid @enderror" required>
-                        <option value="">-- Оберіть автора --</option>
-                        @foreach ($users as $user)
-                            <option value="{{ $user->id }}" {{ (string) old('user_id', $post->user_id) === (string) $user->id ? 'selected' : '' }}>
-                                {{ $user->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('user_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
+                <x-form.input name="title" label="Заголовок" :value="$post->title" />
+                <x-form.textarea name="body" label="Текст допису" :value="$post->body" rows="6" />
 
                 <div class="mb-3">
                     <label for="category_id" class="form-label">Категорія (звʼязок 1:M)</label>
-                    <select name="category_id" id="category_id" class="form-select @error('category_id') is-invalid @enderror" required>
+                    <select name="category_id" id="category_id" class="form-select @error('category_id') is-invalid @enderror">
                         <option value="">-- Оберіть категорію --</option>
                         @foreach ($categories as $category)
                             <option value="{{ $category->id }}" {{ (string) old('category_id', $post->category_id) === (string) $category->id ? 'selected' : '' }}>

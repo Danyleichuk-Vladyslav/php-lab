@@ -21,7 +21,26 @@
                     <li class="nav-item"><a class="nav-link" href="{{ route('comments.index') }}">Коментарі</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ route('attachments.index') }}">Вкладення</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ route('profiles.index') }}">Профілі</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('posts.create') }}">Додати допис</a></li>
+                    @auth
+                        <li class="nav-item"><a class="nav-link" href="{{ route('posts.create') }}">Додати допис</a></li>
+                    @endauth
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    @guest
+                        <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Увійти</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Реєстрація</a></li>
+                    @endguest
+                    @auth
+                        <li class="nav-item">
+                            <span class="nav-link text-info">{{ Auth::user()->name }}</span>
+                        </li>
+                        <li class="nav-item">
+                            <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-link nav-link">Вийти</button>
+                            </form>
+                        </li>
+                    @endauth
                 </ul>
             </div>
         </div>

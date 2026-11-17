@@ -12,26 +12,13 @@
                 <div class="alert alert-danger">Виправте помилки у формі нижче.</div>
             @endif
 
+            <p class="text-muted">Автор допису: <strong>{{ auth()->user()->name }}</strong> (встановлюється автоматично)</p>
+
             <form action="{{ route('posts.store') }}" method="POST">
                 @csrf
 
                 <x-form.input name="title" label="Заголовок" />
                 <x-form.textarea name="body" label="Текст допису" rows="6" />
-
-                <div class="mb-3">
-                    <label for="user_id" class="form-label">Автор</label>
-                    <select name="user_id" id="user_id" class="form-select @error('user_id') is-invalid @enderror">
-                        <option value="">-- Оберіть автора --</option>
-                        @foreach ($users as $user)
-                            <option value="{{ $user->id }}" {{ (string) old('user_id') === (string) $user->id ? 'selected' : '' }}>
-                                {{ $user->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('user_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
 
                 <div class="mb-3">
                     <label for="category_id" class="form-label">Категорія (звʼязок 1:M)</label>

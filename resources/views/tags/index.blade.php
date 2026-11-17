@@ -4,8 +4,10 @@
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Теги</h1>
-        <a href="{{ route('tags.create') }}" class="btn btn-primary">Додати тег</a>
+        <h1>Теги / Маркери</h1>
+        @auth
+            <a href="{{ route('tags.create') }}" class="btn btn-primary">Додати тег</a>
+        @endauth
     </div>
     <table class="table table-bordered table-striped">
         <thead class="table-dark">
@@ -24,16 +26,20 @@
                     <td>{{ $item->id }}</td>
                     <td>{{ $item->name }}</td>
                     <td>{{ $item->slug }}</td>
-                    <td><span class="badge" style="background: {{ $item->color ?? '#6c757d' }}">{{ $item->color ?? '—' }}</span></td>
+                    <td>{{ $item->color ?? '—' }}</td>
                     <td>{{ $item->posts_count }}</td>
                     <td>
                         <a href="{{ route('tags.show', $item) }}" class="btn btn-sm btn-info">Перегляд</a>
-                        <a href="{{ route('tags.edit', $item) }}" class="btn btn-sm btn-warning">Редаг.</a>
-                        <form action="{{ route('tags.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Дійсно видалити?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-danger">Видалити</button>
-                        </form>
+                        @can('update', $item)
+                            <a href="{{ route('tags.edit', $item) }}" class="btn btn-sm btn-warning">Редаг.</a>
+                        @endcan
+                        @can('delete', $item)
+                            <form action="{{ route('tags.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Дійсно видалити?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger">Видалити</button>
+                            </form>
+                        @endcan
                     </td>
                 </tr>
             @empty

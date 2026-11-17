@@ -42,8 +42,7 @@ class PostDatabaseTest extends TestCase
         $category = Category::factory()->create();
         $tags = Tag::factory()->count(2)->create();
 
-        $response = $this->post('/posts', [
-            'user_id' => $user->id,
+        $response = $this->actingAs($user)->post('/posts', [
             'category_id' => $category->id,
             'title' => 'Новий допис із тегами',
             'body' => 'Текст допису для перевірки збереження в SQLite.',

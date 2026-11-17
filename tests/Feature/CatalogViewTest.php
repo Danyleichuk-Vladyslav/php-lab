@@ -25,19 +25,32 @@ class CatalogViewTest extends TestCase
 
         $response->assertStatus(200)
             ->assertSee('Унікальний Тестовий Допис')
-            ->assertSee('Додати новий запис');
+            ->assertDontSee('Додати новий запис');
 
         $this->assertNotNull($post->id);
     }
 
+    public function test_authenticated_user_sees_create_button(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get('/posts')
+            ->assertOk()
+            ->assertSee('Додати новий запис');
+    }
+
     public function test_create_form_validates_input(): void
     {
-        $response = $this->post('/posts', [
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/posts', [
             'title' => '',
             'body' => '',
         ]);
 
-        $response->assertSessionHasErrors(['title', 'body', 'user_id', 'category_id']);
+        $response->assertSessionHasErrors(['title', 'body', 'category_id']);
+        $response->assertSessionDoesntHaveErrors(['user_id']);
     }
 
     public function test_store_creates_post_with_category_and_tags(): void
@@ -46,8 +59,7 @@ class CatalogViewTest extends TestCase
         $category = Category::factory()->create();
         $tags = Tag::factory()->count(2)->create();
 
-        $response = $this->post('/posts', [
-            'user_id' => $user->id,
+        $response = $this->actingAs($user)->post('/posts', [
             'category_id' => $category->id,
             'title' => 'Новий допис із тегами',
             'body' => 'Текст допису для перевірки збереження через Blade-форму.',

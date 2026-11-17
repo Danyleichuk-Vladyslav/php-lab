@@ -17,9 +17,10 @@ class PostAccessTest extends TestCase
     public function test_create_page_is_available(): void
     {
         Category::factory()->create();
-        User::factory()->create();
+        $user = User::factory()->create();
 
-        $this->get('/posts/create')
+        $this->actingAs($user)
+            ->get('/posts/create')
             ->assertStatus(200)
             ->assertSee('Створення нового допису')
             ->assertSee('Категорія');
@@ -35,8 +36,7 @@ class PostAccessTest extends TestCase
             'title' => 'Старий заголовок',
         ]);
 
-        $this->put('/posts/'.$post->id, [
-            'user_id' => $user->id,
+        $this->actingAs($user)->put('/posts/'.$post->id, [
             'category_id' => $category->id,
             'title' => 'Оновлений заголовок',
             'body' => 'Оновлений текст допису для форми редагування.',
@@ -48,7 +48,7 @@ class PostAccessTest extends TestCase
             'title' => 'Оновлений заголовок',
         ]);
 
-        $this->delete('/posts/'.$post->id)
+        $this->actingAs($user)->delete('/posts/'.$post->id)
             ->assertRedirect(route('posts.index'));
 
         $this->assertDatabaseMissing('posts', [

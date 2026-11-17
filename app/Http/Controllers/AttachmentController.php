@@ -27,13 +27,20 @@ class AttachmentController extends Controller
 
     public function create(): View
     {
-        $posts = Post::orderByDesc('id')->get(['id', 'title']);
+        $this->authorize('create', Attachment::class);
+
+        $posts = Post::query()
+            ->where('user_id', auth()->id())
+            ->orderByDesc('id')
+            ->get(['id', 'title']);
 
         return view('attachments.create', compact('posts'));
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $this->authorize('create', Attachment::class);
+
         $validated = $request->validate([
             'post_id' => ['required', 'integer', 'exists:posts,id'],
             'file_name' => ['required', 'string', 'max:255'],
@@ -41,6 +48,9 @@ class AttachmentController extends Controller
             'size_bytes' => ['required', 'integer', 'min:1'],
             'path' => ['required', 'string', 'max:255'],
         ]);
+
+        $post = Post::findOrFail($validated['post_id']);
+        $this->authorize('update', $post);
 
         Attachment::create($validated);
 
@@ -58,13 +68,20 @@ class AttachmentController extends Controller
 
     public function edit(Attachment $attachment): View
     {
-        $posts = Post::orderByDesc('id')->get(['id', 'title']);
+        $this->authorize('update', $attachment);
+
+        $posts = Post::query()
+            ->where('user_id', auth()->id())
+            ->orderByDesc('id')
+            ->get(['id', 'title']);
 
         return view('attachments.edit', compact('attachment', 'posts'));
     }
 
     public function update(Request $request, Attachment $attachment): RedirectResponse
     {
+        $this->authorize('update', $attachment);
+
         $validated = $request->validate([
             'post_id' => ['required', 'integer', 'exists:posts,id'],
             'file_name' => ['required', 'string', 'max:255'],
@@ -72,6 +89,9 @@ class AttachmentController extends Controller
             'size_bytes' => ['required', 'integer', 'min:1'],
             'path' => ['required', 'string', 'max:255'],
         ]);
+
+        $post = Post::findOrFail($validated['post_id']);
+        $this->authorize('update', $post);
 
         $attachment->update($validated);
 
@@ -82,6 +102,8 @@ class AttachmentController extends Controller
 
     public function destroy(Attachment $attachment): RedirectResponse
     {
+        $this->authorize('delete', $attachment);
+
         $attachment->delete();
 
         return redirect()
